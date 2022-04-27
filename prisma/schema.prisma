@@ -1,0 +1,61 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String         @id @default(cuid())
+  name          String
+  email         String         @unique
+  password      String
+  createdAt     DateTime       @default(now()) @db.Timestamp(6)
+  updatedAt     DateTime       @updatedAt
+  emailVerified Boolean        @default(false)
+  lists         List[]
+  usersOnLists  UsersOnLists[]
+  items         Item[]
+  verifyEmail   VerifyEmail[]
+}
+
+model List {
+  id           String         @id @default(cuid())
+  name         String
+  createdAt    DateTime       @default(now()) @db.Timestamp(6)
+  updatedAt    DateTime       @updatedAt
+  items        Item[]
+  users        User[]
+  usersOnLists UsersOnLists[]
+}
+
+model Item {
+  id      String @id @default(cuid())
+  name    String
+  listId  String
+  list    List   @relation(fields: [listId], references: [id])
+  addById String
+  addedBy User   @relation(fields: [addById], references: [id])
+}
+
+model UsersOnLists {
+  list   List   @relation(fields: [listId], references: [id])
+  listId String
+  user   User   @relation(fields: [userId], references: [id])
+  userId String
+
+  @@id([listId, userId])
+}
+
+model VerifyEmail {
+  id      String   @id @default(cuid())
+  userId  String
+  user    User     @relation(fields: [userId], references: [id])
+  token   String
+  created DateTime @default(now()) @db.Timestamp(6)
+}
